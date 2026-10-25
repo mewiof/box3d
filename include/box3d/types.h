@@ -915,8 +915,9 @@ typedef struct b3SphericalJointDef
 	/// A flag to enable the cone limit. The cone is centered on the frameA z-axis.
 	bool enableConeLimit;
 
-	/// The angle for the cone limit in radians. Valid range is [0, pi]
-	float coneAngle;
+	float coneAngleX;
+
+	float coneAngleY;
 
 	/// A flag to enable the twist limit. The twist is centered on the frameB z-axis.
 	bool enableTwistLimit;

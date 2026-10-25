@@ -4,6 +4,7 @@
 #pragma once
 
 #include "base.h"
+#include "math_functions.h"
 
 /// Box3D bases all length units on meters, but you may need different units for your game.
 /// You can set this value to use different units. This should be done at application startup
@@ -25,6 +26,8 @@ B3_API float b3GetLengthUnitsPerMeter( void );
 
 /// Maximum parallel workers. Used for some fixed size arrays.
 #define B3_MAX_WORKERS 32
+
+#define B3_MAX_CONE_ANGLE ( 0.99f * B3_PI )
 
 /// Maximum number of tasks queued per world step. b3EnqueueTaskCallback will never be called
 /// more than this per world step. This is related to B3_MAX_WORKERS. With 32 workers,

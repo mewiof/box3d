@@ -175,7 +175,7 @@ B3_REC_OP( 0xC9, RevoluteJointSetMaxMotorTorque, RET_NONE, ARG( JOINTID, joint )
 
 // Spherical joint
 B3_REC_OP( 0xCA, SphericalJointEnableConeLimit, RET_NONE, ARG( JOINTID, joint ) ARG( BOOL, enableLimit ) )
-B3_REC_OP( 0xCB, SphericalJointSetConeLimit, RET_NONE, ARG( JOINTID, joint ) ARG( F32, angleRadians ) )
+B3_REC_OP( 0xCB, SphericalJointSetConeLimits, RET_NONE, ARG( JOINTID, joint ) ARG( F32, angleX ) ARG( F32, angleY ) )
 B3_REC_OP( 0xCC, SphericalJointEnableTwistLimit, RET_NONE, ARG( JOINTID, joint ) ARG( BOOL, enableLimit ) )
 B3_REC_OP( 0xCD, SphericalJointSetTwistLimits, RET_NONE, ARG( JOINTID, joint ) ARG( F32, lower ) ARG( F32, upper ) )
 B3_REC_OP( 0xCE, SphericalJointEnableSpring, RET_NONE, ARG( JOINTID, joint ) ARG( BOOL, enableSpring ) )

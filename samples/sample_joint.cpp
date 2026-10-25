@@ -756,7 +756,8 @@ public:
 		jointDef.base.localFrameA.p = { 0.0f, 6.5f, 0.0f };
 		jointDef.base.localFrameB.p = { 0.0f, 1.5f, 0.0f };
 		jointDef.enableConeLimit = m_enableConeLimit;
-		jointDef.coneAngle = B3_DEG_TO_RAD * m_coneAngleDegrees;
+		jointDef.coneAngleX = B3_DEG_TO_RAD * m_coneAngleDegrees;
+		jointDef.coneAngleY = B3_DEG_TO_RAD * m_coneAngleDegrees;
 		jointDef.enableTwistLimit = m_enableTwistLimit;
 		jointDef.lowerTwistAngle = B3_DEG_TO_RAD * m_lowerTwistDegrees;
 		jointDef.upperTwistAngle = B3_DEG_TO_RAD * m_upperTwistDegrees;
@@ -782,7 +783,7 @@ public:
 		{
 			if ( ImGui::SliderFloat( "Cone Angle", &m_coneAngleDegrees, 0.0f, 90.0f, "%.0f" ) )
 			{
-				b3SphericalJoint_SetConeLimit( m_jointId, B3_DEG_TO_RAD * m_coneAngleDegrees );
+				b3SphericalJoint_SetConeLimits( m_jointId, B3_DEG_TO_RAD * m_coneAngleDegrees, B3_DEG_TO_RAD * m_coneAngleDegrees );
 				b3Joint_WakeBodies( m_jointId );
 			}
 		}

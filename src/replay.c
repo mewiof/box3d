@@ -604,7 +604,8 @@ b3SphericalJointDef b3RecR_SPHERICALJOINTDEF( b3RecReader* rdr )
 	def.dampingRatio = b3RecR_F32( rdr );
 	def.targetRotation = b3RecR_QUAT( rdr );
 	def.enableConeLimit = b3RecR_BOOL( rdr );
-	def.coneAngle = b3RecR_F32( rdr );
+	def.coneAngleX = b3RecR_F32( rdr );
+	def.coneAngleY = b3RecR_F32( rdr );
 	def.enableTwistLimit = b3RecR_BOOL( rdr );
 	def.lowerTwistAngle = b3RecR_F32( rdr );
 	def.upperTwistAngle = b3RecR_F32( rdr );
@@ -1519,9 +1520,9 @@ static void b3RecDispatch_SphericalJointEnableConeLimit( const b3RecArgs_Spheric
 	b3SphericalJoint_EnableConeLimit( b3RecMakeJointId( rdr, a->joint ), a->enableLimit );
 }
 
-static void b3RecDispatch_SphericalJointSetConeLimit( const b3RecArgs_SphericalJointSetConeLimit* a, b3RecReader* rdr )
+static void b3RecDispatch_SphericalJointSetConeLimits( const b3RecArgs_SphericalJointSetConeLimits* a, b3RecReader* rdr )
 {
-	b3SphericalJoint_SetConeLimit( b3RecMakeJointId( rdr, a->joint ), a->angleRadians );
+	b3SphericalJoint_SetConeLimits( b3RecMakeJointId( rdr, a->joint ), a->angleX, a->angleY );
 }
 
 static void b3RecDispatch_SphericalJointEnableTwistLimit( const b3RecArgs_SphericalJointEnableTwistLimit* a, b3RecReader* rdr )

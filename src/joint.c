@@ -4,6 +4,7 @@
 #include "joint.h"
 
 #include "body.h"
+#include "cone_limit.h"
 #include "contact.h"
 #include "core.h"
 #include "island.h"
@@ -623,10 +624,27 @@ b3JointId b3CreateRevoluteJoint( b3WorldId worldId, const b3RevoluteJointDef* de
 	return jointId;
 }
 
+float b3ClampConeAngle( b3World* world, float angleRadians )
+{
+	float clamped = b3ClampFloat( angleRadians, 0.0f, B3_MAX_CONE_ANGLE );
+	if ( clamped == angleRadians )
+	{
+		return clamped;
+	}
+
+	if ( world->coneWarningCount == 0 )
+	{
+		b3Log( "WARNING: spherical joint cone angle %.4g rad clamped to %.4g rad", (double)angleRadians, (double)clamped );
+	}
+
+	world->coneWarningCount += 1;
+	return clamped;
+}
+
 b3JointId b3CreateSphericalJoint( b3WorldId worldId, const b3SphericalJointDef* def )
 {
 	B3_CHECK_JOINT_DEF( def );
-	B3_ASSERT( 0.0f <= def->coneAngle && def->coneAngle <= 0.99f * B3_PI );
+	B3_ASSERT( b3IsValidFloat( def->coneAngleX ) && b3IsValidFloat( def->coneAngleY ) );
 	B3_ASSERT( b3IsValidQuat( def->targetRotation ) );
 
 	b3World* world = b3GetUnlockedWorldFromId( worldId );
@@ -643,7 +661,8 @@ b3JointId b3CreateSphericalJoint( b3WorldId worldId, const b3SphericalJointDef* 
 	joint->sphericalJoint.hertz = def->hertz;
 	joint->sphericalJoint.dampingRatio = def->dampingRatio;
 	joint->sphericalJoint.targetRotation = def->targetRotation;
-	joint->sphericalJoint.coneAngle = b3ClampFloat( def->coneAngle, 0.0f, 0.5f * B3_PI );
+	joint->sphericalJoint.coneAngleX = b3ClampConeAngle( world, def->coneAngleX );
+	joint->sphericalJoint.coneAngleY = b3ClampConeAngle( world, def->coneAngleY );
 
 	float lowerAngle = b3MinFloat( def->lowerTwistAngle, def->upperTwistAngle );
 	float upperAngle = b3MaxFloat( def->lowerTwistAngle, def->upperTwistAngle );
@@ -1083,19 +1102,13 @@ void b3GetJointReaction( b3World* world, b3JointSim* sim, float invTimeStep, flo
 			b3SphericalJoint* joint = &sim->sphericalJoint;
 			linearImpulse = b3Length( joint->linearImpulse );
 
-			b3WorldTransform xfA = b3GetBodyTransform( world, sim->bodyIdA );
 			b3WorldTransform xfB = b3GetBodyTransform( world, sim->bodyIdB );
-			b3Quat qA = b3MulQuat( xfA.q, sim->localFrameA.q );
 			b3Quat qB = b3MulQuat( xfB.q, sim->localFrameB.q );
-
-			// Cone axis is the z-axis of body A.
-			b3Vec3 coneAxis = b3RotateVector( qA, b3Vec3_axisZ );
 			b3Vec3 twistAxis = b3RotateVector( qB, b3Vec3_axisZ );
-			b3Vec3 swingAxis = b3Normalize( b3Cross( coneAxis, twistAxis ) );
 
 			b3Vec3 impulse = b3Add( joint->springImpulse, joint->motorImpulse );
 			impulse = b3MulAdd( impulse, joint->lowerTwistImpulse - joint->upperTwistImpulse, twistAxis );
-			impulse = b3MulAdd( impulse, joint->swingImpulse, swingAxis );
+			impulse = b3MulAdd( impulse, joint->swingImpulse, joint->swingAxis );
 
 			angularImpulse = b3Length( impulse );
 		}
@@ -1404,8 +1417,10 @@ float b3Joint_GetAngularSeparation( b3JointId jointId )
 			float sum = 0.0f;
 			if ( sphericalJoint->enableConeLimit )
 			{
-				float swingAngle = b3GetSwingAngle( relQ );
-				sum += b3MaxFloat( 0.0f, swingAngle - sphericalJoint->coneAngle );
+				b3Swing swing = b3DecomposeSwing( relQ );
+				float coneAngle =
+					b3ConeLimitAngle( sphericalJoint->coneAngleX, sphericalJoint->coneAngleY, swing.ux, swing.uy );
+				sum += b3MaxFloat( 0.0f, swing.angle - coneAngle );
 			}
 
 			if ( sphericalJoint->enableTwistLimit )

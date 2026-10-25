@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 
 #include "body.h"
+#include "cone_limit.h"
 #include "core.h"
 #include "joint.h"
 #include "math_internal.h"
@@ -31,19 +32,26 @@ bool b3SphericalJoint_IsConeLimitEnabled( b3JointId jointId )
 	return base->sphericalJoint.enableConeLimit;
 }
 
-float b3SphericalJoint_GetConeLimit( b3JointId jointId )
+float b3SphericalJoint_GetConeLimitX( b3JointId jointId )
 {
 	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
-	return base->sphericalJoint.coneAngle;
+	return base->sphericalJoint.coneAngleX;
 }
 
-void b3SphericalJoint_SetConeLimit( b3JointId jointId, float angleRadians )
+float b3SphericalJoint_GetConeLimitY( b3JointId jointId )
 {
-	B3_ASSERT( b3IsValidFloat( angleRadians ) && 0 <= angleRadians && angleRadians <= 0.5f * B3_PI );
-	b3World* world = b3GetWorld( jointId.world0 );
-	B3_REC( world, SphericalJointSetConeLimit, jointId, angleRadians );
 	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
-	base->sphericalJoint.coneAngle = angleRadians;
+	return base->sphericalJoint.coneAngleY;
+}
+
+void b3SphericalJoint_SetConeLimits( b3JointId jointId, float angleXRadians, float angleYRadians )
+{
+	B3_ASSERT( b3IsValidFloat( angleXRadians ) && b3IsValidFloat( angleYRadians ) );
+	b3World* world = b3GetWorld( jointId.world0 );
+	B3_REC( world, SphericalJointSetConeLimits, jointId, angleXRadians, angleYRadians );
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	base->sphericalJoint.coneAngleX = b3ClampConeAngle( world, angleXRadians );
+	base->sphericalJoint.coneAngleY = b3ClampConeAngle( world, angleYRadians );
 }
 
 float b3SphericalJoint_GetConeAngle( b3JointId jointId )
@@ -259,22 +267,30 @@ b3Vec3 b3GetSphericalJointForce( b3World* world, b3JointSim* base )
 
 b3Vec3 b3GetSphericalJointTorque( b3World* world, b3JointSim* base )
 {
-	b3WorldTransform xfA = b3GetBodyTransform( world, base->bodyIdA );
 	b3WorldTransform xfB = b3GetBodyTransform( world, base->bodyIdB );
-	b3Quat qA = b3MulQuat( xfA.q, base->localFrameA.q );
 	b3Quat qB = b3MulQuat( xfB.q, base->localFrameB.q );
-
-	// Cone axis is the z-axis of body A.
-	b3Vec3 coneAxis = b3RotateVector( qA, b3Vec3_axisZ );
 	b3Vec3 twistAxis = b3RotateVector( qB, b3Vec3_axisZ );
-	b3Vec3 swingAxis = b3Normalize( b3Cross( coneAxis, twistAxis ) );
 
 	b3SphericalJoint* joint = &base->sphericalJoint;
 	b3Vec3 impulse = b3Add( joint->springImpulse, joint->motorImpulse );
 	impulse = b3MulAdd( impulse, joint->lowerTwistImpulse - joint->upperTwistImpulse, twistAxis );
-	impulse = b3MulAdd( impulse, joint->swingImpulse, swingAxis );
+	impulse = b3MulAdd( impulse, joint->swingImpulse, joint->swingAxis );
 	b3Vec3 torque = b3MulSV( world->inv_h, impulse );
 	return torque;
+}
+
+static inline b3Vec3 b3ConeLimitAxis( float ax, float ay, float ux, float uy )
+{
+	float nx = ux * ay * ay;
+	float ny = uy * ax * ax;
+	float lengthSquared = nx * nx + ny * ny;
+	if ( lengthSquared > 1000.0f * FLT_MIN )
+	{
+		float invLength = 1.0f / sqrtf( lengthSquared );
+		return B3_LITERAL( b3Vec3 ){ invLength * nx, invLength * ny, 0.0f };
+	}
+
+	return B3_LITERAL( b3Vec3 ){ ux, uy, 0.0f };
 }
 
 // Point-to-point constraint
@@ -338,11 +354,10 @@ void b3PrepareSphericalJoint( b3JointSim* base, b3StepContext* context )
 
 	if ( joint->enableConeLimit )
 	{
-		// Swing axis may be zero
-		b3Vec3 swingAxis = b3Normalize( b3Cross( coneAxis, twistAxis ) );
-		float k = b3Dot( swingAxis, b3MulMV( invInertiaSum, swingAxis ) );
-		joint->swingMass = k > 0.0f ? 1.0f / k : 0.0f;
-		joint->swingAxis = swingAxis;
+		b3Quat relQ = b3InvMulQuat( joint->frameA.q, joint->frameB.q );
+		b3Swing swing = b3DecomposeSwing( relQ );
+		b3Vec3 axisLocal = b3ConeLimitAxis( joint->coneAngleX, joint->coneAngleY, swing.ux, swing.uy );
+		joint->swingAxis = b3RotateVector( joint->frameA.q, axisLocal );
 	}
 
 	if ( joint->enableTwistLimit )
@@ -569,17 +584,17 @@ void b3SolveSphericalJoint( b3JointSim* base, b3StepContext* context, bool useBi
 
 		if ( joint->enableConeLimit )
 		{
-			float swingAngle = b3GetSwingAngle( relQ );
+			b3Swing swing = b3DecomposeSwing( relQ );
+			float coneAngle = b3ConeLimitAngle( joint->coneAngleX, joint->coneAngleY, swing.ux, swing.uy );
 
-			// todo does an updated swing axis help?
-			// b3Vec3 axisA = b3RotateVector( quatA, b3Vec3_axisZ );
-			// b3Vec3 axisB = b3RotateVector( quatB, b3Vec3_axisZ );
-			// b3Vec3 swingAxis = b3Normalize( b3Cross( axisA, axisB ) );
-			// joint->swingAxis = swingAxis;
+			b3Vec3 axisLocal = b3ConeLimitAxis( joint->coneAngleX, joint->coneAngleY, swing.ux, swing.uy );
+			b3Vec3 swingAxis = b3RotateVector( quatA, axisLocal );
+			joint->swingAxis = swingAxis;
 
-			b3Vec3 swingAxis = joint->swingAxis;
+			float k = b3Dot( swingAxis, b3MulMV( invInertiaSum, swingAxis ) );
+			float swingMass = k > 0.0f ? 1.0f / k : 0.0f;
 
-			float c = joint->coneAngle - swingAngle;
+			float c = coneAngle - swing.angle;
 			float bias = 0.0f;
 			float massScale = 1.0f;
 			float impulseScale = 0.0f;
@@ -599,7 +614,7 @@ void b3SolveSphericalJoint( b3JointSim* base, b3StepContext* context, bool useBi
 			float swingCdot = -b3Dot( cdot, swingAxis );
 			float oldImpulse = joint->swingImpulse;
 			float deltaImpulse =
-				b3MaxFloat( -massScale * joint->swingMass * ( swingCdot + bias ) - impulseScale * oldImpulse, -oldImpulse );
+				b3MaxFloat( -massScale * swingMass * ( swingCdot + bias ) - impulseScale * oldImpulse, -oldImpulse );
 			joint->swingImpulse = oldImpulse + deltaImpulse;
 
 			// sign flipped on applied impulse
@@ -725,16 +740,23 @@ void b3DrawSphericalJoint( b3DebugDraw* draw, b3JointSim* base, b3WorldTransform
 	if ( joint->enableConeLimit )
 	{
 		const float radius = 0.1f * scale;
-		float coneRadius = radius * b3Sin( joint->coneAngle );
-		float coneHeight = radius * b3Cos( joint->coneAngle );
 
 		for ( int index = 0; index < kSliceCount; ++index )
 		{
 			float phi1 = 2.0f * ( index + 0 ) / kSliceCount * B3_PI;
 			float phi2 = 2.0f * ( index + 1 ) / kSliceCount * B3_PI;
 
-			b3Vec3 vertex1 = { coneRadius * b3Cos( phi1 ), coneRadius * b3Sin( phi1 ), coneHeight };
-			b3Vec3 vertex2 = { coneRadius * b3Cos( phi2 ), coneRadius * b3Sin( phi2 ), coneHeight };
+			b3CosSin cs1 = b3ComputeCosSin( phi1 );
+			b3CosSin cs2 = b3ComputeCosSin( phi2 );
+
+			float limit1 = b3ConeLimitAngle( joint->coneAngleX, joint->coneAngleY, -cs1.sine, cs1.cosine );
+			float limit2 = b3ConeLimitAngle( joint->coneAngleX, joint->coneAngleY, -cs2.sine, cs2.cosine );
+
+			b3CosSin l1 = b3ComputeCosSin( limit1 );
+			b3CosSin l2 = b3ComputeCosSin( limit2 );
+
+			b3Vec3 vertex1 = { radius * l1.sine * cs1.cosine, radius * l1.sine * cs1.sine, radius * l1.cosine };
+			b3Vec3 vertex2 = { radius * l2.sine * cs2.cosine, radius * l2.sine * cs2.sine, radius * l2.cosine };
 
 			draw->DrawSegmentFcn( frameA.p, b3TransformWorldPoint( frameA, vertex1 ), b3_colorCyan, draw->context );
 			draw->DrawSegmentFcn( b3TransformWorldPoint( frameA, vertex1 ), b3TransformWorldPoint( frameA, vertex2 ), b3_colorCyan,

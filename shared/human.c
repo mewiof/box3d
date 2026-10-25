@@ -383,7 +383,8 @@ void CreateHuman( Human* human, b3WorldId worldId, b3Pos position, float frictio
 			jointDef.base.localFrameA = bone->localFrameA;
 			jointDef.base.localFrameB = bone->localFrameB;
 			jointDef.enableConeLimit = true;
-			jointDef.coneAngle = bone->swingLimit;
+			jointDef.coneAngleX = bone->swingLimit;
+			jointDef.coneAngleY = bone->swingLimit;
 			jointDef.enableTwistLimit = true;
 			jointDef.lowerTwistAngle = bone->twistLimit.x;
 			jointDef.upperTwistAngle = bone->twistLimit.y;

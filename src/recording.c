@@ -508,7 +508,8 @@ void b3RecW_SPHERICALJOINTDEF( b3RecBuffer* buf, b3SphericalJointDef v )
 	b3RecW_F32( buf, v.dampingRatio );
 	b3RecW_QUAT( buf, v.targetRotation );
 	b3RecW_BOOL( buf, v.enableConeLimit );
-	b3RecW_F32( buf, v.coneAngle );
+	b3RecW_F32( buf, v.coneAngleX );
+	b3RecW_F32( buf, v.coneAngleY );
 	b3RecW_BOOL( buf, v.enableTwistLimit );
 	b3RecW_F32( buf, v.lowerTwistAngle );
 	b3RecW_F32( buf, v.upperTwistAngle );

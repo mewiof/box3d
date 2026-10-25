@@ -413,8 +413,9 @@ static int TestSphericalJoint( void )
 	b3SphericalJoint_EnableConeLimit( jointId, true );
 	ENSURE( b3SphericalJoint_IsConeLimitEnabled( jointId ) == true );
 
-	b3SphericalJoint_SetConeLimit( jointId, 0.5f );
-	ENSURE( b3SphericalJoint_GetConeLimit( jointId ) == 0.5f );
+	b3SphericalJoint_SetConeLimits( jointId, 0.5f, 0.25f );
+	ENSURE( b3SphericalJoint_GetConeLimitX( jointId ) == 0.5f );
+	ENSURE( b3SphericalJoint_GetConeLimitY( jointId ) == 0.25f );
 
 	float coneAngle = b3SphericalJoint_GetConeAngle( jointId );
 	MAYBE_UNUSED( coneAngle );

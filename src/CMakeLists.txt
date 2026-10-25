@@ -17,6 +17,7 @@ set(BOX3D_SOURCE_FILES
 	capsule.c
 	compound.c
 	compound.h
+	cone_limit.h
 	constraint_graph.c
 	constraint_graph.h
 	contact_solver_wide.inl

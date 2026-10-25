@@ -1518,7 +1518,7 @@ static int AllOps( void )
 	sphDef.base.bodyIdB = jb[6];
 	b3JointId sphId = b3CreateSphericalJoint( worldId, &sphDef );
 	b3SphericalJoint_EnableConeLimit( sphId, true );
-	b3SphericalJoint_SetConeLimit( sphId, 0.5f );
+	b3SphericalJoint_SetConeLimits( sphId, 0.5f, 0.5f );
 	b3SphericalJoint_EnableTwistLimit( sphId, true );
 	b3SphericalJoint_SetTwistLimits( sphId, -0.3f, 0.3f );
 	b3SphericalJoint_EnableSpring( sphId, true );

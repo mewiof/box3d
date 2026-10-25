@@ -286,6 +286,8 @@ typedef struct b3World
 	int activeTaskCount;
 	int taskCount;
 
+	int coneWarningCount;
+
 	uint16_t worldId;
 
 	bool enableSleep;

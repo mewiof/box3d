@@ -1552,11 +1552,11 @@ B3_API void b3SphericalJoint_EnableConeLimit( b3JointId jointId, bool enableLimi
 /// Is the spherical joint cone limit enabled?
 B3_API bool b3SphericalJoint_IsConeLimitEnabled( b3JointId jointId );
 
-/// Get the spherical joint cone limit in radians
-B3_API float b3SphericalJoint_GetConeLimit( b3JointId jointId );
+B3_API float b3SphericalJoint_GetConeLimitX( b3JointId jointId );
 
-/// Set the spherical joint limits in radians
-B3_API void b3SphericalJoint_SetConeLimit( b3JointId jointId, float angleRadians );
+B3_API float b3SphericalJoint_GetConeLimitY( b3JointId jointId );
+
+B3_API void b3SphericalJoint_SetConeLimits( b3JointId jointId, float angleXRadians, float angleYRadians );
 
 /// Get the spherical joint current cone angle in radians.
 B3_API float b3SphericalJoint_GetConeAngle( b3JointId jointId );
