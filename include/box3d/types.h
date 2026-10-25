@@ -891,6 +891,12 @@ typedef struct b3RevoluteJointDef
 /// @ingroup revolute_joint
 B3_API b3RevoluteJointDef b3DefaultRevoluteJointDef( void );
 
+typedef enum b3SpringMode
+{
+	b3_springFrequency = 0,
+	b3_springTorque = 1,
+} b3SpringMode;
+
 /// Spherical joint definition. A point on body B is fixed to a point on body A.
 /// Allows rotation about the shared point.
 /// @ingroup spherical_joint
@@ -908,6 +914,12 @@ typedef struct b3SphericalJointDef
 
 	/// The spring damping ratio, non-dimensional. Non-negative number.
 	float dampingRatio;
+
+	b3SpringMode springMode;
+
+	float springStiffness;
+
+	float springDamping;
 
 	/// Target spring rotation, joint frame B relative to joint frame A.
 	b3Quat targetRotation;

@@ -602,6 +602,9 @@ b3SphericalJointDef b3RecR_SPHERICALJOINTDEF( b3RecReader* rdr )
 	def.enableSpring = b3RecR_BOOL( rdr );
 	def.hertz = b3RecR_F32( rdr );
 	def.dampingRatio = b3RecR_F32( rdr );
+	def.springMode = (b3SpringMode)b3RecR_I32( rdr );
+	def.springStiffness = b3RecR_F32( rdr );
+	def.springDamping = b3RecR_F32( rdr );
 	def.targetRotation = b3RecR_QUAT( rdr );
 	def.enableConeLimit = b3RecR_BOOL( rdr );
 	def.coneAngleX = b3RecR_F32( rdr );
@@ -1549,6 +1552,21 @@ static void b3RecDispatch_SphericalJointSetSpringDampingRatio( const b3RecArgs_S
 															   b3RecReader* rdr )
 {
 	b3SphericalJoint_SetSpringDampingRatio( b3RecMakeJointId( rdr, a->joint ), a->dampingRatio );
+}
+
+static void b3RecDispatch_SphericalJointSetSpringMode( const b3RecArgs_SphericalJointSetSpringMode* a, b3RecReader* rdr )
+{
+	b3SphericalJoint_SetSpringMode( b3RecMakeJointId( rdr, a->joint ), (b3SpringMode)a->mode );
+}
+
+static void b3RecDispatch_SphericalJointSetSpringStiffness( const b3RecArgs_SphericalJointSetSpringStiffness* a, b3RecReader* rdr )
+{
+	b3SphericalJoint_SetSpringStiffness( b3RecMakeJointId( rdr, a->joint ), a->stiffness );
+}
+
+static void b3RecDispatch_SphericalJointSetSpringDamping( const b3RecArgs_SphericalJointSetSpringDamping* a, b3RecReader* rdr )
+{
+	b3SphericalJoint_SetSpringDamping( b3RecMakeJointId( rdr, a->joint ), a->damping );
 }
 
 static void b3RecDispatch_SphericalJointSetTargetRotation( const b3RecArgs_SphericalJointSetTargetRotation* a, b3RecReader* rdr )

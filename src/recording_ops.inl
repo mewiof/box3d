@@ -101,6 +101,10 @@ B3_REC_OP( 0x5D, ShapeSetMeshMaterial, RET_NONE, ARG( SHAPEID, shape ) ARG( MATE
 B3_REC_OP( 0x5E, ShapeSetHull, RET_NONE, ARG( SHAPEID, shape ) ARG( GEOMID, geometryId ) )
 B3_REC_OP( 0x5F, ShapeSetMesh, RET_NONE, ARG( SHAPEID, shape ) ARG( GEOMID, geometryId ) ARG( VEC3, scale ) )
 
+B3_REC_OP( 0x8D, SphericalJointSetSpringMode, RET_NONE, ARG( JOINTID, joint ) ARG( I32, mode ) )
+B3_REC_OP( 0x8E, SphericalJointSetSpringStiffness, RET_NONE, ARG( JOINTID, joint ) ARG( F32, stiffness ) )
+B3_REC_OP( 0x8F, SphericalJointSetSpringDamping, RET_NONE, ARG( JOINTID, joint ) ARG( F32, damping ) )
+
 // Joint create and destroy
 B3_REC_OP( 0x90, CreateParallelJoint, RET_JOINTID, ARG( WORLDID, world ) ARG( PARALLELJOINTDEF, def ) )
 B3_REC_OP( 0x91, CreateDistanceJoint, RET_JOINTID, ARG( WORLDID, world ) ARG( DISTANCEJOINTDEF, def ) )

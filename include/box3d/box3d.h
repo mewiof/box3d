@@ -1597,6 +1597,18 @@ B3_API void b3SphericalJoint_SetSpringDampingRatio( b3JointId jointId, float dam
 /// Get the spherical joint spring damping ratio, non-dimensional
 B3_API float b3SphericalJoint_GetSpringDampingRatio( b3JointId jointId );
 
+B3_API void b3SphericalJoint_SetSpringMode( b3JointId jointId, b3SpringMode mode );
+
+B3_API b3SpringMode b3SphericalJoint_GetSpringMode( b3JointId jointId );
+
+B3_API void b3SphericalJoint_SetSpringStiffness( b3JointId jointId, float stiffness );
+
+B3_API float b3SphericalJoint_GetSpringStiffness( b3JointId jointId );
+
+B3_API void b3SphericalJoint_SetSpringDamping( b3JointId jointId, float damping );
+
+B3_API float b3SphericalJoint_GetSpringDamping( b3JointId jointId );
+
 /// Set the spherical joint spring target rotation
 B3_API void b3SphericalJoint_SetTargetRotation( b3JointId jointId, b3Quat targetRotation );
 

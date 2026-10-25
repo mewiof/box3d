@@ -660,6 +660,9 @@ b3JointId b3CreateSphericalJoint( b3WorldId worldId, const b3SphericalJointDef* 
 	joint->sphericalJoint = (b3SphericalJoint){ 0 };
 	joint->sphericalJoint.hertz = def->hertz;
 	joint->sphericalJoint.dampingRatio = def->dampingRatio;
+	joint->sphericalJoint.springMode = def->springMode;
+	joint->sphericalJoint.springStiffness = def->springStiffness;
+	joint->sphericalJoint.springDamping = def->springDamping;
 	joint->sphericalJoint.targetRotation = def->targetRotation;
 	joint->sphericalJoint.coneAngleX = b3ClampConeAngle( world, def->coneAngleX );
 	joint->sphericalJoint.coneAngleY = b3ClampConeAngle( world, def->coneAngleY );

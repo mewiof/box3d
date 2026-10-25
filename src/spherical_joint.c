@@ -204,6 +204,50 @@ float b3SphericalJoint_GetSpringDampingRatio( b3JointId jointId )
 	return base->sphericalJoint.dampingRatio;
 }
 
+void b3SphericalJoint_SetSpringMode( b3JointId jointId, b3SpringMode mode )
+{
+	b3World* world = b3GetWorld( jointId.world0 );
+	B3_REC( world, SphericalJointSetSpringMode, jointId, (int)mode );
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	base->sphericalJoint.springMode = mode;
+}
+
+b3SpringMode b3SphericalJoint_GetSpringMode( b3JointId jointId )
+{
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	return base->sphericalJoint.springMode;
+}
+
+void b3SphericalJoint_SetSpringStiffness( b3JointId jointId, float stiffness )
+{
+	B3_ASSERT( b3IsValidFloat( stiffness ) && stiffness >= 0.0f );
+	b3World* world = b3GetWorld( jointId.world0 );
+	B3_REC( world, SphericalJointSetSpringStiffness, jointId, stiffness );
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	base->sphericalJoint.springStiffness = stiffness;
+}
+
+float b3SphericalJoint_GetSpringStiffness( b3JointId jointId )
+{
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	return base->sphericalJoint.springStiffness;
+}
+
+void b3SphericalJoint_SetSpringDamping( b3JointId jointId, float damping )
+{
+	B3_ASSERT( b3IsValidFloat( damping ) && damping >= 0.0f );
+	b3World* world = b3GetWorld( jointId.world0 );
+	B3_REC( world, SphericalJointSetSpringDamping, jointId, damping );
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	base->sphericalJoint.springDamping = damping;
+}
+
+float b3SphericalJoint_GetSpringDamping( b3JointId jointId )
+{
+	b3JointSim* base = b3GetJointSimCheckType( jointId, b3_sphericalJoint );
+	return base->sphericalJoint.springDamping;
+}
+
 void b3SphericalJoint_EnableMotor( b3JointId jointId, bool enableMotor )
 {
 	b3World* world = b3GetWorld( jointId.world0 );
@@ -291,6 +335,16 @@ static inline b3Vec3 b3ConeLimitAxis( float ax, float ay, float ux, float uy )
 	}
 
 	return B3_LITERAL( b3Vec3 ){ ux, uy, 0.0f };
+}
+
+static inline void b3PrepareSphericalTorqueSpring( b3SphericalJoint* joint, b3Matrix3 invInertiaSum, float h )
+{
+	float k = joint->springStiffness;
+	float d = joint->springDamping;
+	float denominator = d + h * k;
+	joint->springScale = h * denominator;
+	joint->springSoftness.biasRate = denominator > 0.0f ? k / denominator : 0.0f;
+	joint->springSoftMass = b3InvertMatrix( b3AddMM( b3Mat3_identity, b3MulSM( joint->springScale, invInertiaSum ) ) );
 }
 
 // Point-to-point constraint
@@ -383,7 +437,14 @@ void b3PrepareSphericalJoint( b3JointSim* base, b3StepContext* context )
 		joint->rotationMass = b3Mat3_zero;
 	}
 
-	joint->springSoftness = b3MakeSoft( joint->hertz, joint->dampingRatio, context->h );
+	if ( joint->springMode == b3_springTorque )
+	{
+		b3PrepareSphericalTorqueSpring( joint, invInertiaSum, context->h );
+	}
+	else
+	{
+		joint->springSoftness = b3MakeSoft( joint->hertz, joint->dampingRatio, context->h );
+	}
 
 	if ( context->enableWarmStarting == false )
 	{
@@ -484,11 +545,20 @@ void b3SolveSphericalJoint( b3JointSim* base, b3StepContext* context, bool useBi
 			b3Vec3 c = b3Neg( b3RotateVector( quatA, deltaRotation ) );
 
 			b3Vec3 bias = b3MulSV( joint->springSoftness.biasRate, c );
-			float massScale = joint->springSoftness.massScale;
-			float impulseScale = joint->springSoftness.impulseScale;
 
-			b3Vec3 impulse = b3MulSub( b3MulSV( -massScale, b3MulMV( joint->rotationMass, b3Add( cdot, bias ) ) ),
-									   impulseScale, joint->springImpulse );
+			b3Vec3 impulse;
+			if ( joint->springMode == b3_springTorque )
+			{
+				b3Vec3 t = b3MulAdd( joint->springImpulse, joint->springScale, b3Add( cdot, bias ) );
+				impulse = b3Neg( b3MulMV( joint->springSoftMass, t ) );
+			}
+			else
+			{
+				float massScale = joint->springSoftness.massScale;
+				float impulseScale = joint->springSoftness.impulseScale;
+				impulse = b3MulSub( b3MulSV( -massScale, b3MulMV( joint->rotationMass, b3Add( cdot, bias ) ) ), impulseScale,
+									joint->springImpulse );
+			}
 			joint->springImpulse = b3Add( joint->springImpulse, impulse );
 
 			cdot = b3Add( cdot, b3MulMV( invInertiaSum, impulse ) );

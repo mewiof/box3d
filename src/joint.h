@@ -214,6 +214,8 @@ typedef struct b3SphericalJoint
 	float swingImpulse;
 	float hertz;
 	float dampingRatio;
+	float springStiffness;
+	float springDamping;
 	float maxMotorTorque;
 	b3Vec3 motorVelocity;
 	float lowerTwistAngle;
@@ -233,6 +235,9 @@ typedef struct b3SphericalJoint
 	b3Matrix3 rotationMass;
 	float twistMass;
 	b3Softness springSoftness;
+	b3Matrix3 springSoftMass;
+	float springScale;
+	b3SpringMode springMode;
 
 	bool enableSpring;
 	bool enableMotor;
