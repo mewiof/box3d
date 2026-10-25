@@ -299,7 +299,7 @@ void b3SolveMotorJoint( b3JointSim* base, b3StepContext* context )
 	b3Quat relQ = b3InvMulQuat( quatA, quatB );
 
 	// angular spring
-	if ( joint->maxSpringTorque > 0.0f && joint->angularHertz > 0.0f )
+	if ( joint->maxSpringTorque > 0.0f )
 	{
 		b3Quat targetQuat = b3Quat_identity;
 		b3Vec3 deltaRotation = b3DeltaQuatToRotation( relQ, targetQuat );
@@ -348,7 +348,7 @@ void b3SolveMotorJoint( b3JointSim* base, b3StepContext* context )
 	b3Vec3 rB = b3RotateVector( stateB->deltaRotation, joint->frameB.p );
 
 	// linear spring
-	if ( joint->maxSpringForce > 0.0f && joint->linearHertz > 0.0f )
+	if ( joint->maxSpringForce > 0.0f )
 	{
 		b3Vec3 dcA = stateA->deltaPosition;
 		b3Vec3 dcB = stateB->deltaPosition;

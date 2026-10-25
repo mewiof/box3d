@@ -269,6 +269,15 @@ typedef struct b3StepContext
 
 void b3Solve( b3World* world, b3StepContext* stepContext );
 
+static inline b3Softness b3MakeRigidSoft( void )
+{
+	return B3_LITERAL( b3Softness ){
+		.biasRate = 0.0f,
+		.massScale = 1.0f,
+		.impulseScale = 0.0f,
+	};
+}
+
 static inline b3Softness b3MakeSoft( float hertz, float zeta, float h )
 {
 	if ( hertz == 0.0f )
@@ -276,7 +285,7 @@ static inline b3Softness b3MakeSoft( float hertz, float zeta, float h )
 		return B3_LITERAL( b3Softness ){
 			.biasRate = 0.0f,
 			.massScale = 0.0f,
-			.impulseScale = 0.0f,
+			.impulseScale = 1.0f,
 		};
 	}
 

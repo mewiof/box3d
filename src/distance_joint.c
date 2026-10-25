@@ -384,7 +384,6 @@ void b3SolveDistanceJoint( b3JointSim* base, b3StepContext* context, bool useBia
 	if ( joint->enableSpring && ( joint->minLength < joint->maxLength || joint->enableLimit == false ) )
 	{
 		// spring
-		if ( joint->hertz > 0.0f )
 		{
 			// Cdot = dot(u, v + cross(w, r))
 			b3Vec3 vr = b3Add( b3Sub( vB, vA ), b3Sub( b3Cross( wB, rB ), b3Cross( wA, rA ) ) );

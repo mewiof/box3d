@@ -1483,7 +1483,14 @@ void b3PrepareJoint( b3JointSim* joint, b3StepContext* context )
 {
 	// Clamp joint hertz based on the time step to reduce jitter.
 	float hertz = b3MinFloat( joint->constraintHertz, 0.25f * context->inv_h );
-	joint->constraintSoftness = b3MakeSoft( hertz, joint->constraintDampingRatio, context->h );
+	if ( hertz > 0.0f )
+	{
+		joint->constraintSoftness = b3MakeSoft( hertz, joint->constraintDampingRatio, context->h );
+	}
+	else
+	{
+		joint->constraintSoftness = b3MakeRigidSoft();
+	}
 
 	switch ( joint->type )
 	{
