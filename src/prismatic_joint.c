@@ -264,17 +264,21 @@ float b3PrismaticJoint_GetSpeed( b3JointId jointId )
 	return speed;
 }
 
+static inline b3Vec3 b3GetPrismaticJointSpaceImpulse( const b3PrismaticJoint* joint )
+{
+	return (b3Vec3){
+		joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse,
+		joint->perpImpulse.x,
+		joint->perpImpulse.y,
+	};
+}
+
 b3Vec3 b3GetPrismaticJointForce( b3World* world, b3JointSim* base )
 {
 	b3WorldTransform transformA = b3GetBodyTransform( world, base->bodyIdA );
-	b3PrismaticJoint* joint = &base->prismaticJoint;
 
 	// impulse in joint space
-	b3Vec3 impulse = {
-		joint->perpImpulse.x,
-		joint->perpImpulse.y,
-		joint->motorImpulse + joint->lowerImpulse + joint->upperImpulse + joint->springImpulse,
-	};
+	b3Vec3 impulse = b3GetPrismaticJointSpaceImpulse( &base->prismaticJoint );
 
 	// convert impulse to force
 	b3Vec3 force = b3MulSV( world->inv_h, impulse );
@@ -390,8 +394,9 @@ void b3WarmStartPrismaticJoint( b3JointSim* base, b3StepContext* context )
 	b3Vec3 sAz = b3Cross( b3Add( rA, d ), perpZ );
 	b3Vec3 sBz = b3Cross( rB, perpZ );
 
-	float axialImpulse = joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse;
-	b3Vec2 perpImpulse = joint->perpImpulse;
+	b3Vec3 jointSpaceImpulse = b3GetPrismaticJointSpaceImpulse( joint );
+	float axialImpulse = jointSpaceImpulse.x;
+	b3Vec2 perpImpulse = { jointSpaceImpulse.y, jointSpaceImpulse.z };
 
 	b3Vec3 P = b3Blend3( axialImpulse, jointAxis, perpImpulse.x, perpY, perpImpulse.y, perpZ );
 	b3Vec3 LA = b3Add( b3Blend3( axialImpulse, sAx, perpImpulse.x, sAy, perpImpulse.y, sAz ), joint->angularImpulse );
