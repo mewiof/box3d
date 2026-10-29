@@ -2375,24 +2375,25 @@ b3TOIOutput b3ShapeTimeOfImpact( b3Shape* shapeA, b3Shape* shapeB, b3Sweep* swee
 
 	b3TOIOutput output = b3TimeOfImpact( &input );
 
-#if 0
-	// todo I'm not sure this is worth it for convex vs convex.
-	if (0.0f < output.fraction && output.fraction < maxFraction)
+	if ( output.fraction != 0.0f )
 	{
 		return output;
 	}
 
-	if (0.0f == output.fraction)
+	b3Vec3 localCentroidB = b3GetShapeCentroid( shapeB );
+	float minExtent = b3ComputeShapeMinExtent( shapeB, localCentroidB );
+	float fallbackRadius = b3MaxFloat( 0.5f * minExtent, B3_LINEAR_SLOP );
+
+	input.proxyB = (b3ShapeProxy){ &localCentroidB, 1, fallbackRadius + B3_LINEAR_SLOP };
+
+	b3TOIOutput fallbackOutput = b3TimeOfImpact( &input );
+	if ( fallbackOutput.fraction <= 0.0f )
 	{
-		// fallback to TOI of a small circle around the fast shape centroid
-		b3Vec3 centroid = b3GetShapeCentroid( shapeB );
-		input.proxyB = ( b3ShapeProxy ){ &centroid, 1, B3_SPECULATIVE_DISTANCE };
-		output = b3TimeOfImpact( &input );
 		return output;
 	}
-#endif
 
-	return output;
+	fallbackOutput.usedFallback = true;
+	return fallbackOutput;
 }
 
 // Resolve the user material id for a hit point on the given shape. Mesh/heightfield shapes
