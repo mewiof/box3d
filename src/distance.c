@@ -1904,11 +1904,10 @@ b3TOIOutput b3TimeOfImpact( const b3TOIInput* input )
 			}
 
 			// Restart the inner loop if we have a failing edge case.
-			if ( rootIterationCount == maxRootIterations - 1 && function.type == b3_separationEdges )
+			if ( rootIterationCount == maxRootIterations && function.type == b3_separationEdges )
 			{
 				B3_VALIDATE( false );
 
-				rootIterationCount = 0;
 				t2 = input->maxFraction;
 				b3ForceFixedAxis( &function, t1 );
 				B3_ASSERT( function.type != b3_separationEdges );
