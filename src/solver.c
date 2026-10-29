@@ -524,6 +524,8 @@ static void b3SolveContinuous( b3World* world, int bodySimIndex, b3TaskContext* 
 	float safetyFactor = fastBody->safetyFactor;
 	float rotationChord = 2.0f * b3Length( b3InvMulQuat( sweep.q1, sweep.q2 ).v );
 
+	const float speculativeScalar = B3_SPECULATIVE_DISTANCE;
+
 	int shapeId = fastBody->headShapeId;
 	while ( shapeId != B3_NULL_INDEX )
 	{
@@ -535,8 +537,13 @@ static void b3SolveContinuous( b3World* world, int bodySimIndex, b3TaskContext* 
 		context.centroid2 = b3TransformPoint( xf2, fastShape->localCentroid );
 
 		b3AABB box1 = fastShape->aabb;
+		b3AABB tight2 = b3ComputeShapeAABB( fastShape, xf2 );
+		b3Vec3 speculativeExtra = { speculativeScalar, speculativeScalar, speculativeScalar };
+		tight2.lowerBound = b3Sub( tight2.lowerBound, speculativeExtra );
+		tight2.upperBound = b3Add( tight2.upperBound, speculativeExtra );
+
 		// xf2 is relative to the base, so translate the box back to world space, rounding outward
-		b3AABB box2 = b3OffsetAABB( b3ComputeShapeAABB( fastShape, xf2 ), base );
+		b3AABB box2 = b3OffsetAABB( tight2, base );
 
 		// Store this to avoid double computation in the case there is no impact event
 		fastShape->aabb = box2;
@@ -571,8 +578,6 @@ static void b3SolveContinuous( b3World* world, int bodySimIndex, b3TaskContext* 
 			b3DynamicTree_Query( dynamicTree, sweptBox, B3_DEFAULT_MASK_BITS, false, b3ContinuousQueryCallback, &context );
 		}
 	}
-
-	const float speculativeScalar = B3_SPECULATIVE_DISTANCE;
 
 	if ( context.fraction < 1.0f )
 	{
