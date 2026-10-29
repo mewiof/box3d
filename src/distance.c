@@ -1841,17 +1841,6 @@ b3TOIOutput b3TimeOfImpact( const b3TOIInput* input )
 			// Compute the initial separation of the witness points
 			float s1 = b3EvaluateSeparation( &function, indexA, indexB, t1 );
 
-			// Check for overlap. This might happen if the root finder runs out of iterations.
-			if ( s1 < target - tolerance )
-			{
-				// Failed!
-				B3_VALIDATE( false );
-				output.state = b3_toiStateFailed;
-				output.fraction = t1;
-				done = true;
-				break;
-			}
-
 			// Has the separation reached tolerance?
 			if ( s1 <= target + tolerance )
 			{
