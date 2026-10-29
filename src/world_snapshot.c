@@ -33,7 +33,7 @@
 
 // Snapshot image magic 'BNS3' and version
 #define B3_SNAP_MAGIC 0x33534E42u
-#define B3_SNAP_VERSION 11u // isotropic inertia tolerance
+#define B3_SNAP_VERSION 12u
 
 #define B3_SNAP_FLAG_VALIDATION 0x1u
 #define B3_SNAP_FLAG_DOUBLE_PRECISION 0x2u
@@ -211,17 +211,19 @@ static bool b3SnapCheckCount( const b3SnapReader* r, int count, int memSize, int
 	}                                                                                                                            \
 	while ( 0 )
 
-// Id pool: nextIndex + freeArray
+// Id pool: nextIndex + freeArray + retiredCount
 static void b3SerIdPool( b3RecBuffer* buf, const b3IdPool* pool )
 {
 	b3SnapW_I32( buf, pool->nextIndex );
 	b3SerPodArray( buf, pool->freeArray );
+	b3SnapW_I32( buf, pool->retiredCount );
 }
 
 static void b3DesIdPool( b3SnapReader* r, b3IdPool* pool )
 {
 	pool->nextIndex = b3SnapR_I32( r );
 	b3DesPodArray( r, pool->freeArray );
+	pool->retiredCount = b3SnapR_I32( r );
 }
 
 // BitSet: blockCount + raw words

@@ -3625,7 +3625,10 @@ void b3ValidateConnectivity( b3World* world )
 		b3Body* body = bodies + bodyIndex;
 		if ( body->id == B3_NULL_INDEX )
 		{
-			b3ValidateFreeId( &world->bodyIdPool, bodyIndex );
+			if ( body->generation < B3_MAX_GENERATION )
+			{
+				b3ValidateFreeId( &world->bodyIdPool, bodyIndex );
+			}
 			continue;
 		}
 

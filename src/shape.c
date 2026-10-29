@@ -567,7 +567,7 @@ static void b3DestroyShapeInternal( b3World* world, b3Shape* shape, b3Body* body
 	b3DestroyShapeAllocations( world, shape );
 
 	// Return shape to free list.
-	b3FreeId( &world->shapeIdPool, shapeId );
+	b3RetireOrFreeId( &world->shapeIdPool, shapeId, shape->generation );
 	shape->id = B3_NULL_INDEX;
 
 	b3ValidateSolverSets( world );

@@ -849,7 +849,7 @@ void b3DestroyJointInternal( b3World* world, b3Joint* joint, bool wakeBodies )
 	joint->localIndex = B3_NULL_INDEX;
 	joint->colorIndex = B3_NULL_INDEX;
 	joint->jointId = B3_NULL_INDEX;
-	b3FreeId( &world->jointIdPool, jointId );
+	b3RetireOrFreeId( &world->jointIdPool, jointId, joint->generation );
 
 	if ( wakeBodies )
 	{

@@ -414,7 +414,7 @@ void b3DestroyBody( b3BodyId bodyId )
 		b3DestroyShapeAllocations( world, shape );
 
 		// Return shape to free list.
-		b3FreeId( &world->shapeIdPool, shapeId );
+		b3RetireOrFreeId( &world->shapeIdPool, shapeId, shape->generation );
 		shape->id = B3_NULL_INDEX;
 
 		shapeId = shape->nextShapeId;
@@ -450,7 +450,7 @@ void b3DestroyBody( b3BodyId bodyId )
 	}
 
 	// Free body and id (preserve body revision)
-	b3FreeId( &world->bodyIdPool, body->id );
+	b3RetireOrFreeId( &world->bodyIdPool, body->id, body->generation );
 
 	body->setIndex = B3_NULL_INDEX;
 	body->localIndex = B3_NULL_INDEX;
