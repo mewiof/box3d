@@ -721,6 +721,9 @@ static void b3FinalizeBodiesTask( int startIndex, int endIndex, int workerIndex,
 
 	const float speculativeScalar = B3_SPECULATIVE_DISTANCE;
 
+	float maxLinearSpeed = stepContext->maxLinearVelocity;
+	float maxLinearSpeedSquared = maxLinearSpeed * maxLinearSpeed;
+
 	for ( int simIndex = startIndex; simIndex < endIndex; ++simIndex )
 	{
 		b3BodyState* state = states + simIndex;
@@ -728,6 +731,14 @@ static void b3FinalizeBodiesTask( int startIndex, int endIndex, int workerIndex,
 
 		b3Vec3 v = state->linearVelocity;
 		b3Vec3 w = state->angularVelocity;
+
+		if ( b3Dot( v, v ) > maxLinearSpeedSquared )
+		{
+			v = b3MulSV( maxLinearSpeed / b3Length( v ), v );
+			state->linearVelocity = v;
+			state->flags |= b3_isSpeedCapped;
+		}
+
 		b3Vec3 localOmega = b3InvRotateVector( sim->transform.q, w );
 		b3Vec3 localDeltaRotation = b3InvRotateVector( sim->transform.q, state->deltaRotation.v );
 
