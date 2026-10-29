@@ -114,6 +114,14 @@ void b3CollideTriangleAndSphere( b3LocalManifold* manifold, int capacity, const 
 
 static bool b3ClipSegmentToTriangleFace( b3ClipVertex segment[2], const b3Vec3* points, b3Plane plane )
 {
+	b3Vec3 axis = b3Sub( segment[1].position, segment[0].position );
+	float axisLengthSquared = b3LengthSquared( axis );
+	float normalComponent = b3Dot( axis, plane.normal );
+	float shadowLengthSquared = axisLengthSquared - normalComponent * normalComponent;
+
+	const float alphaTol = 0.05f;
+	bool degenerateShadow = shadowLengthSquared <= alphaTol * alphaTol * axisLengthSquared;
+
 	b3Vec3 vertex1 = points[2];
 	for ( int i = 0; i < 3; ++i )
 	{
@@ -129,6 +137,17 @@ static bool b3ClipSegmentToTriangleFace( b3ClipVertex segment[2], const b3Vec3* 
 
 		float distance1 = b3PlaneSeparation( clipPlane, p1.position );
 		float distance2 = b3PlaneSeparation( clipPlane, p2.position );
+
+		if ( degenerateShadow )
+		{
+			if ( b3MinFloat( distance1, distance2 ) > 0.0f )
+			{
+				return false;
+			}
+
+			vertex1 = vertex2;
+			continue;
+		}
 
 		// If the points are behind the plane
 		if ( distance1 <= 0.0f )
