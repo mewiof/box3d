@@ -463,3 +463,12 @@ static inline b3Vec3 b3SolvePointConstraint( float mA, float mB, b3Matrix3 iA, b
 
 	return b3Vec3_zero;
 }
+
+static inline b3Vec3 b3GetPrismaticJointSpaceImpulse( const b3PrismaticJoint* joint )
+{
+	return (b3Vec3){
+		joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse,
+		joint->perpImpulse.x,
+		joint->perpImpulse.y,
+	};
+}

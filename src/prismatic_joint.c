@@ -264,15 +264,6 @@ float b3PrismaticJoint_GetSpeed( b3JointId jointId )
 	return speed;
 }
 
-static inline b3Vec3 b3GetPrismaticJointSpaceImpulse( const b3PrismaticJoint* joint )
-{
-	return (b3Vec3){
-		joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse,
-		joint->perpImpulse.x,
-		joint->perpImpulse.y,
-	};
-}
-
 b3Vec3 b3GetPrismaticJointForce( b3World* world, b3JointSim* base )
 {
 	b3WorldTransform transformA = b3GetBodyTransform( world, base->bodyIdA );
@@ -293,13 +284,7 @@ b3Vec3 b3GetPrismaticJointForce( b3World* world, b3JointSim* base )
 
 b3Vec3 b3GetPrismaticJointTorque( b3World* world, b3JointSim* base )
 {
-	b3WorldTransform transformA = b3GetBodyTransform( world, base->bodyIdA );
-	b3PrismaticJoint* joint = &base->prismaticJoint;
-
-	b3Vec3 torque = b3MulSV( world->inv_h, joint->angularImpulse );
-	torque = b3RotateVector( base->localFrameA.q, torque );
-	torque = b3RotateVector( transformA.q, torque );
-	return torque;
+	return b3MulSV( world->inv_h, base->prismaticJoint.angularImpulse );
 }
 
 void b3PreparePrismaticJoint( b3JointSim* base, b3StepContext* context )

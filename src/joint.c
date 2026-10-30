@@ -1076,12 +1076,7 @@ void b3GetJointReaction( b3World* world, b3JointSim* sim, float invTimeStep, flo
 		case b3_prismaticJoint:
 		{
 			b3PrismaticJoint* joint = &sim->prismaticJoint;
-			b3Vec3 impulse = {
-				.x = joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse,
-				.y = joint->perpImpulse.x,
-				.z = joint->perpImpulse.y,
-			};
-			linearImpulse = b3Length( impulse );
+			linearImpulse = b3Length( b3GetPrismaticJointSpaceImpulse( joint ) );
 			angularImpulse = b3Length( joint->angularImpulse );
 		}
 		break;
