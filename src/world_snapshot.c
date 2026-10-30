@@ -211,7 +211,7 @@ static bool b3SnapCheckCount( const b3SnapReader* r, int count, int memSize, int
 	}                                                                                                                            \
 	while ( 0 )
 
-// Id pool: nextIndex + freeArray + retiredCount
+// Id pool: nextIndex + freeArray
 static void b3SerIdPool( b3RecBuffer* buf, const b3IdPool* pool )
 {
 	b3SnapW_I32( buf, pool->nextIndex );
