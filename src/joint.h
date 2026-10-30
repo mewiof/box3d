@@ -472,3 +472,11 @@ static inline b3Vec3 b3GetPrismaticJointSpaceImpulse( const b3PrismaticJoint* jo
 		joint->perpImpulse.y,
 	};
 }
+
+static inline b3Vec3 b3GetRevoluteJointAngularImpulse( const b3RevoluteJoint* joint )
+{
+	float axialImpulse = joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse;
+	b3Vec3 angularImpulse =
+		b3Add( b3MulSV( joint->perpImpulse.x, joint->perpAxisX ), b3MulSV( joint->perpImpulse.y, joint->perpAxisY ) );
+	return b3MulAdd( angularImpulse, axialImpulse, joint->rotationAxisZ );
+}

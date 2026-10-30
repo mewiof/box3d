@@ -1085,12 +1085,7 @@ void b3GetJointReaction( b3World* world, b3JointSim* sim, float invTimeStep, flo
 		{
 			b3RevoluteJoint* joint = &sim->revoluteJoint;
 			linearImpulse = b3Length( joint->linearImpulse );
-			b3Vec3 impulse = {
-				.x = joint->perpImpulse.x,
-				.y = joint->perpImpulse.y,
-				.z = joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse,
-			};
-			angularImpulse = b3Length( impulse );
+			angularImpulse = b3Length( b3GetRevoluteJointAngularImpulse( joint ) );
 		}
 		break;
 

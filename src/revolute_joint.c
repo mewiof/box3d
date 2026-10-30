@@ -232,29 +232,8 @@ b3Vec3 b3GetRevoluteJointForce( b3World* world, b3JointSim* base )
 
 b3Vec3 b3GetRevoluteJointTorque( b3World* world, b3JointSim* base )
 {
-	b3WorldTransform transformA = b3GetBodyTransform( world, base->bodyIdA );
-	b3RevoluteJoint* joint = &base->revoluteJoint;
-	b3Vec3 axis = b3RotateVector( base->localFrameA.q, b3Vec3_axisZ );
-	axis = b3RotateVector( transformA.q, axis );
-
-	b3Quat relQ = b3InvMulQuat( joint->frameA.q, joint->frameB.q );
-
-	// These are needed for warm starting
-	joint->perpAxisX = b3MulSV(
-		0.5f, b3RotateVector( joint->frameA.q, b3Add( b3MulSV( relQ.s, b3Vec3_axisX ), b3Cross( relQ.v, b3Vec3_axisX ) ) ) );
-	joint->perpAxisY = b3MulSV(
-		0.5f, b3RotateVector( joint->frameA.q, b3Add( b3MulSV( relQ.s, b3Vec3_axisY ), b3Cross( relQ.v, b3Vec3_axisY ) ) ) );
-
-	float axialImpulse = joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse;
-	b3Vec3 angularImpulse =
-		b3Add( b3MulSV( joint->perpImpulse.x, joint->perpAxisX ), b3MulSV( joint->perpImpulse.y, joint->perpAxisY ) );
-	angularImpulse = b3MulAdd( angularImpulse, axialImpulse, joint->rotationAxisZ );
-
 	// todo add pivot torque
-	b3Vec3 impulse = b3MulAdd( angularImpulse,
-							   joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse, axis );
-	b3Vec3 torque = b3MulSV( world->inv_h, impulse );
-	return torque;
+	return b3MulSV( world->inv_h, b3GetRevoluteJointAngularImpulse( &base->revoluteJoint ) );
 }
 
 void b3PrepareRevoluteJoint( b3JointSim* base, b3StepContext* context )
@@ -356,10 +335,7 @@ void b3WarmStartRevoluteJoint( b3JointSim* base, b3StepContext* context )
 	b3Vec3 rA = b3RotateVector( stateA->deltaRotation, joint->frameA.p );
 	b3Vec3 rB = b3RotateVector( stateB->deltaRotation, joint->frameB.p );
 
-	float axialImpulse = joint->springImpulse + joint->motorImpulse + joint->lowerImpulse - joint->upperImpulse;
-	b3Vec3 angularImpulse =
-		b3Add( b3MulSV( joint->perpImpulse.x, joint->perpAxisX ), b3MulSV( joint->perpImpulse.y, joint->perpAxisY ) );
-	angularImpulse = b3MulAdd( angularImpulse, axialImpulse, joint->rotationAxisZ );
+	b3Vec3 angularImpulse = b3GetRevoluteJointAngularImpulse( joint );
 
 	vA = b3MulSub( vA, mA, joint->linearImpulse );
 	wA = b3Sub( wA, b3MulMV( iA, b3Add( b3Cross( rA, joint->linearImpulse ), angularImpulse ) ) );
