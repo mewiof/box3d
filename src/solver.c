@@ -297,7 +297,7 @@ static void b3SolveJointsTask( b3SolverBlock block, b3StepContext* context, bool
 			 b3GetBit( jointStateBitSet, joint->jointId ) == false )
 		{
 			float force, torque;
-			b3GetJointReaction( context->world, joint, context->inv_h, &force, &torque );
+			b3GetJointReaction( joint, context->inv_h, &force, &torque );
 
 			// Check thresholds. A zero threshold means all awake joints get reported.
 			if ( force >= joint->forceThreshold || torque >= joint->torqueThreshold )

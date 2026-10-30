@@ -311,16 +311,7 @@ b3Vec3 b3GetSphericalJointForce( b3World* world, b3JointSim* base )
 
 b3Vec3 b3GetSphericalJointTorque( b3World* world, b3JointSim* base )
 {
-	b3WorldTransform xfB = b3GetBodyTransform( world, base->bodyIdB );
-	b3Quat qB = b3MulQuat( xfB.q, base->localFrameB.q );
-	b3Vec3 twistAxis = b3RotateVector( qB, b3Vec3_axisZ );
-
-	b3SphericalJoint* joint = &base->sphericalJoint;
-	b3Vec3 impulse = b3Add( joint->springImpulse, joint->motorImpulse );
-	impulse = b3MulAdd( impulse, joint->lowerTwistImpulse - joint->upperTwistImpulse, twistAxis );
-	impulse = b3MulAdd( impulse, joint->swingImpulse, joint->swingAxis );
-	b3Vec3 torque = b3MulSV( world->inv_h, impulse );
-	return torque;
+	return b3MulSV( world->inv_h, b3GetSphericalJointAngularImpulse( &base->sphericalJoint ) );
 }
 
 static inline b3Vec3 b3ConeLimitAxis( float ax, float ay, float ux, float uy )
@@ -482,9 +473,7 @@ void b3WarmStartSphericalJoint( b3JointSim* base, b3StepContext* context )
 	b3Vec3 rA = b3RotateVector( stateA->deltaRotation, joint->frameA.p );
 	b3Vec3 rB = b3RotateVector( stateB->deltaRotation, joint->frameB.p );
 
-	b3Vec3 angularImpulse = b3Add( joint->springImpulse, joint->motorImpulse );
-	angularImpulse = b3MulSub( angularImpulse, joint->swingImpulse, joint->swingAxis );
-	angularImpulse = b3MulAdd( angularImpulse, joint->lowerTwistImpulse - joint->upperTwistImpulse, joint->twistJacobian );
+	b3Vec3 angularImpulse = b3GetSphericalJointAngularImpulse( joint );
 
 	vA = b3MulSub( vA, mA, joint->linearImpulse );
 	wA = b3Sub( wA, b3MulMV( iA, b3Add( b3Cross( rA, joint->linearImpulse ), angularImpulse ) ) );

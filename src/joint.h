@@ -364,7 +364,7 @@ void b3PrepareJoints_Overflow( b3StepContext* context );
 void b3WarmStartJoints_Overflow( b3StepContext* context );
 void b3SolveJoints_Overflow( b3StepContext* context, bool useBias );
 
-void b3GetJointReaction( b3World* world, b3JointSim* sim, float invTimeStep, float* force, float* torque );
+void b3GetJointReaction( b3JointSim* sim, float invTimeStep, float* force, float* torque );
 
 float b3ClampConeAngle( b3World* world, float angleRadians );
 
@@ -479,4 +479,11 @@ static inline b3Vec3 b3GetRevoluteJointAngularImpulse( const b3RevoluteJoint* jo
 	b3Vec3 angularImpulse =
 		b3Add( b3MulSV( joint->perpImpulse.x, joint->perpAxisX ), b3MulSV( joint->perpImpulse.y, joint->perpAxisY ) );
 	return b3MulAdd( angularImpulse, axialImpulse, joint->rotationAxisZ );
+}
+
+static inline b3Vec3 b3GetSphericalJointAngularImpulse( const b3SphericalJoint* joint )
+{
+	b3Vec3 angularImpulse = b3Add( joint->springImpulse, joint->motorImpulse );
+	angularImpulse = b3MulSub( angularImpulse, joint->swingImpulse, joint->swingAxis );
+	return b3MulAdd( angularImpulse, joint->lowerTwistImpulse - joint->upperTwistImpulse, joint->twistJacobian );
 }

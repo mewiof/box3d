@@ -1039,7 +1039,7 @@ bool b3Joint_IsAwake( b3JointId jointId )
 	return joint->setIndex == b3_awakeSet;
 }
 
-void b3GetJointReaction( b3World* world, b3JointSim* sim, float invTimeStep, float* force, float* torque )
+void b3GetJointReaction( b3JointSim* sim, float invTimeStep, float* force, float* torque )
 {
 	float linearImpulse = 0.0f;
 	float angularImpulse = 0.0f;
@@ -1094,16 +1094,7 @@ void b3GetJointReaction( b3World* world, b3JointSim* sim, float invTimeStep, flo
 			// todo improve performance
 			b3SphericalJoint* joint = &sim->sphericalJoint;
 			linearImpulse = b3Length( joint->linearImpulse );
-
-			b3WorldTransform xfB = b3GetBodyTransform( world, sim->bodyIdB );
-			b3Quat qB = b3MulQuat( xfB.q, sim->localFrameB.q );
-			b3Vec3 twistAxis = b3RotateVector( qB, b3Vec3_axisZ );
-
-			b3Vec3 impulse = b3Add( joint->springImpulse, joint->motorImpulse );
-			impulse = b3MulAdd( impulse, joint->lowerTwistImpulse - joint->upperTwistImpulse, twistAxis );
-			impulse = b3MulAdd( impulse, joint->swingImpulse, joint->swingAxis );
-
-			angularImpulse = b3Length( impulse );
+			angularImpulse = b3Length( b3GetSphericalJointAngularImpulse( joint ) );
 		}
 		break;
 
